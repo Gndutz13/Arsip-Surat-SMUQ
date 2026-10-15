@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arsip Surat - SMA Kristen 1 Salatiga</title>
+  <!-- Tailwind CSS & FontAwesome Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col justify-between">
+
+  <!-- Navigation Header -->
+  <nav class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center space-x-3">
+      <div class="bg-white p-2 rounded-full shadow-inner text-blue-900 flex items-center justify-center w-10 h-10">
+        <i class="fas fa-school text-xl"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-base md:text-lg leading-tight">Arsip Surat SMA Kristen 1 Salatiga</h1>
+        <p class="text-xs text-blue-200">Sistem Pengelolaan Surat Masuk & Keluar Terpadu</p>
+      </div>
+    </div>
+    <div id="userInfo" class="flex items-center space-x-3 hidden">
+      <span id="userEmailDisplay" class="text-xs bg-blue-800 px-3 py-1.5 rounded-full font-medium hidden sm:inline-block">Administrator</span>
+      <span id="roleLabel" class="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">Admin</span>
+      <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-1">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="hidden sm:inline">Keluar</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Portal Login Section -->
+  <main class="flex-grow flex items-center justify-center p-4">
+    <div id="pageLogin" class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl text-center border border-gray-100 my-auto">
+      <div class="w-20 h-20 bg-blue-50 text-blue-900 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+        <i class="fas fa-folder-open"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-1">Portal Arsip Surat</h2>
+      <p class="text-sm text-gray-500 mb-6">SMA Kristen 1 Salatiga</p>
+      
+      <div class="space-y-4">
+        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-left space-y-3">
+          <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide">Login Administrator</label>
+          <div class="relative">
+            <input type="password" id="adminPasswordInput" placeholder="Masukkan Password Admin" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none text-sm pr-10">
+            <i class="fas fa-key absolute right-3 top-3.5 text-gray-400 text-xs"></i>
+          </div>
+          <button onclick="loginAsAdmin()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 text-sm shadow-md active:scale-95">
+            <i class="fas fa-lock"></i>
+            <span>Masuk sebagai Admin</span>
+          </button>
+        </div>
+
+        <div class="relative flex py-2 items-center">
+          <div class="flex-grow border-t border-gray-200"></div>
+          <span class="flex-shrink mx-4 text-gray-400 text-xs font-semibold">ATAU</span>
+          <div class="flex-grow border-t border-gray-200"></div>
+        </div>
+
+        <button onclick="loginAsGuest()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 border border-gray-300 text-sm active:scale-95">
+          <i class="fas fa-eye text-gray-500"></i>
+          <span>Masuk sebagai Guest (Lihat Saja)</span>
+        </button>
+      </div>
+      <p class="text-xs text-gray-400 mt-6">Gunakan password admin untuk akses input dan sunting arsip.</p>
+    </div>
+
+    <!-- Main Dashboard Section -->
+    <div id="pageDashboard" class="hidden w-full max-w-6xl mx-auto my-6 p-4">
+      
+      <!-- Tab Controls Navigation -->
+      <div class="flex bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+        <button onclick="switchMenu('arsip')" id="btnTabArsip" class="flex-1 py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 bg-blue-50/50 transition flex items-center justify-center space-x-2">
+          <i class="fas fa-folder-open"></i>
+          <span>Arsip Surat</span>
+        </button>
+        <button id="btnTabInput" onclick="switchMenu('input')" class="flex-1 py-4 text-center font-bold text-gray-400 hover:text-blue-900 transition flex items-center justify-center space-x-2 hidden">
+          <i class="fas fa-plus-circle"></i>
+          <span id="labelInputTab">Input Surat Baru</span>
+        </button>
+      </div>
+
+      <!-- Section: Archive Table & Filters -->
+      <div id="secArsip" class="space-y-6">
+        
+        <!-- Filter and Action Controls -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+          
+          <!-- Category Selector Buttons -->
+          <div class="flex space-x-2 w-full md:w-auto">
+            <button onclick="setTabCategory('semua')" id="btnSemua" class="flex-1 md:flex-none bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+              Semua
+            </button>
+            <button onclick="setTabCategory('masuk')" id="btnMasuk" class="flex-1 md:flex-none bg-blue-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition">
+              <i class="fas fa-inbox mr-1"></i> Surat Masuk
+            </button>
+            <button onclick="setTabCategory('keluar')" id="btnKeluar" class="flex-1 md:flex-none bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+              <i class="fas fa-paper-plane mr-1"></i> Surat Keluar
+            </button>
+          </div>
+
+          <!-- Search & Sorting Controls -->
+          <div class="flex items-center space-x-2 w-full md:w-auto">
+            <div class="relative flex-1 md:w-64">
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+              <input type="text" id="searchInput" oninput="renderTableData()" placeholder="Cari No. Surat / Pengirim..." class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-900 focus:outline-none">
+            </div>
+            
+            <select id="sortOrder" onchange="renderTableData()" class="bg-gray-50 border border-gray-300 py-2 px-3 rounded-xl text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-900">
+              <option value="asc">No. Arsip (A-Z / Urut)</option>
+              <option value="desc">No. Arsip (Z-A / Terbalik)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Archive Table Display -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h3 id="tableTitle" class="text-lg font-bold text-gray-800">Daftar Arsip Surat Masuk</h3>
+            <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full flex items-center space-x-1">
+              <i class="fab fa-google-drive text-green-600"></i>
+              <span>Auto Sync Drive & Sheets</span>
+            </span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-gray-100 text-gray-600 border-b border-gray-200">
+                  <th class="p-3">Jenis</th>
+                  <th class="p-3">No. Arsip</th>
+                  <th class="p-3">No. Surat</th>
+                  <th class="p-3">Pengirim / Pemohon</th>
+                  <th class="p-3">Tanggal Surat</th>
+                  <th class="p-3">Keterangan / Disposisi</th>
+                  <th class="p-3">Berkas Drive</th>
+                  <th class="p-3 text-center" id="thAksi">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody" class="divide-y divide-gray-100">
+                <!-- Dynamically populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Input & Edit Form -->
+      <div id="secInput" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-gray-200 max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+          <h3 id="formTitleText" class="text-xl font-bold text-gray-800">Form Input Surat Baru</h3>
+          <button onclick="switchMenu('arsip')" class="text-gray-400 hover:text-gray-600 p-2"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        
+        <form id="formSurat" onsubmit="submitSurat(event)" class="space-y-4">
+          <input type="hidden" id="editIndex" value="">
+          <input type="hidden" id="editCategory" value="">
+          
+          <div>
+            <label class="block text-sm font-semibold mb-1 text-gray-700">Jenis Surat</label>
+            <select id="jenisSurat" onchange="toggleFormFields()" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none bg-white">
+              <option value="masuk">Surat Masuk</option>
+              <option value="keluar">Surat Keluar</option>
+            </select>
+          </div>
+
+          <!-- Surat Masuk Input Fields -->
+          <div id="divSuratMasuk" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Pengirim</label>
+              <input type="text" id="pengirim" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" placeholder="Contoh: Dinas Pendidikan Kota Salatiga">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Tanggal Diterima</label>
+              <input type="date" id="tglDiterima" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Disposisi / Penjelasan Surat</label>
+              <textarea id="disposisi" rows="3" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" placeholder="Catatan disposisi pimpinan..."></textarea>
+            </div>
+          </div>
+
+          <!-- Surat Keluar Input Fields -->
+          <div id="divSuratKeluar" class="space-y-4 hidden">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Pemohon</label>
+              <input type="text" id="pemohon" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" placeholder="Contoh: OSIS / Guru Pembina">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Keterangan</label>
+              <textarea id="keterangan" rows="3" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" placeholder="Perihal atau keterangan surat keluar..."></textarea>
+            </div>
+          </div>
+
+          <!-- Common Form Fields -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Nomor Surat</label>
+              <input type="text" id="noSurat" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" required placeholder="001/SMAK1/...">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Nomor Arsip</label>
+              <input type="text" id="noArsip" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" required placeholder="ARSIP-001">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-gray-700">Tanggal Surat</label>
+              <input type="date" id="tglSurat" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-900 focus:outline-none" required>
+            </div>
+          </div>
+
+          <!-- File Attachment / Camera Upload Control -->
+          <div>
+            <label class="block text-sm font-semibold mb-1 text-gray-700">Upload Berkas / Foto Dokumen (Otomatis Tersimpan di Google Drive)</label>
+            <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx" capture="environment" class="w-full border border-gray-300 p-2.5 rounded-xl bg-gray-50 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            <p class="text-xs text-gray-500 mt-1"><i class="fas fa-cloud-upload-alt mr-1 text-blue-600"></i> File akan terorganisir di Google Drive folder 'Arsip Surat SMAK 1 Salatiga'.</p>
+          </div>
+
+          <div class="pt-4 flex space-x-3">
+            <button type="submit" id="btnSubmitForm" class="flex-1 bg-blue-900 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition shadow-md flex items-center justify-center space-x-2">
+              <span>Simpan ke Arsip & Drive</span>
+            </button>
+            <button type="button" onclick="switchMenu('arsip')" class="bg-gray-200 text-gray-700 font-semibold px-6 py-3 rounded-xl hover:bg-gray-300 transition">
+              Batal
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500">
+    <p>&copy; 2026 SMA Kristen 1 Salatiga. Sistem Informasi Manajemen Arsip Surat.</p>
+  </footer>
+
+  <script>
+    // Google Apps Script Web App Deployment URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwfFgJ_UOpSGyehymdlzJtnquUDwqFIAQlmra5UtJX1Shdrbe7I3XTHJL3jbB8mPad/exec'; 
+    const ADMIN_PASSWORD = "SmaK1Pwd13";
+
+    let currentUserRole = 'guest';
+    let activeTabArsip = 'masuk'; // 'masuk', 'keluar', 'semua'
+    
+    // Application Local State
+    let localDatabase = { 
+      masuk: [
+        { noArsip: "ARSIP-001", noSurat: "001/SMAK1/IX/2026", pengirim: "Dinas Pendidikan Salatiga", tglSurat: "2026-09-01", tglDiterima: "2026-09-02", disposisi: "Edaran sosialisasi kurikulum baru", fileName: "surat_edaran.pdf", fileUrl: "#" },
+        { noArsip: "ARSIP-003", noSurat: "005/SMAK1/IX/2026", pengirim: "Yayasan Salatiga", tglSurat: "2026-09-10", tglDiterima: "2026-09-11", disposisi: "Undangan rapat evaluasi", fileName: "undangan.pdf", fileUrl: "#" }
+      ], 
+      keluar: [
+        { noArsip: "ARSIP-002", noSurat: "010/SMAK1/SK/IX/2026", pemohon: "OSIS SMAK 1", tglSurat: "2026-09-05", keterangan: "Permohonan izin kegiatan pensi sekolah", fileName: "proposal_pensi.pdf", fileUrl: "#" }
+      ] 
+    };
+
+    function loginAsAdmin() {
+      const pwd = document.getElementById('adminPasswordInput').value;
+      if(pwd === ADMIN_PASSWORD) {
+        currentUserRole = 'admin';
+        initDashboard('Administrator', 'Admin (Full Access)');
+      } else {
+        alert("Password salah! Silakan coba lagi.");
+      }
+    }
+
+    function loginAsGuest() {
+      currentUserRole = 'guest';
+      initDashboard('Tamu / Guest', 'Guest (Read Only)');
+    }
+
+    function initDashboard(displayName, roleText) {
+      document.getElementById('pageLogin').classList.add('hidden');
+      document.getElementById('pageDashboard').classList.remove('hidden');
+      document.getElementById('userInfo').classList.remove('hidden');
+      document.getElementById('userEmailDisplay').innerText = displayName;
+      
+      const roleLabel = document.getElementById('roleLabel');
+      if(currentUserRole === 'admin') {
+        roleLabel.innerText = roleText;
+        roleLabel.className = 'bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold';
+        document.getElementById('btnTabInput').classList.remove('hidden');
+      } else {
+        roleLabel.innerText = roleText;
+        roleLabel.className = 'bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-xs font-bold';
+        document.getElementById('btnTabInput').classList.add('hidden');
+      }
+      
+      setTabCategory('masuk');
+    }
+
+    function logout() {
+      document.getElementById('pageDashboard').classList.add('hidden');
+      document.getElementById('userInfo').classList.add('hidden');
+      document.getElementById('pageLogin').classList.remove('hidden');
+      document.getElementById('adminPasswordInput').value = "";
+      currentUserRole = 'guest';
+    }
+
+    function switchMenu(menu) {
+      if(menu === 'arsip') {
+        document.getElementById('secArsip').classList.remove('hidden');
+        document.getElementById('secInput').classList.add('hidden');
+        document.getElementById('btnTabArsip').className = "flex-1 py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 bg-blue-50/50 transition flex items-center justify-center space-x-2";
+        document.getElementById('btnTabInput').className = "flex-1 py-4 text-center font-bold text-gray-400 hover:text-blue-900 transition flex items-center justify-center space-x-2";
+      } else if(menu === 'input' && currentUserRole === 'admin') {
+        document.getElementById('secArsip').classList.add('hidden');
+        document.getElementById('secInput').classList.remove('hidden');
+        document.getElementById('btnTabInput').className = "flex-1 py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 bg-blue-50/50 transition flex items-center justify-center space-x-2";
+        document.getElementById('btnTabArsip').className = "flex-1 py-4 text-center font-bold text-gray-400 hover:text-blue-900 transition flex items-center justify-center space-x-2";
+        
+        document.getElementById('formSurat').reset();
+        document.getElementById('editIndex').value = "";
+        document.getElementById('editCategory').value = "";
+        document.getElementById('formTitleText').innerText = "Form Input Surat Baru";
+        document.getElementById('btnSubmitForm').innerText = "Simpan ke Arsip & Drive";
+      }
+    }
+
+    function toggleFormFields() {
+      const jenis = document.getElementById('jenisSurat').value;
+      if(jenis === 'masuk') {
+        document.getElementById('divSuratMasuk').classList.remove('hidden');
+        document.getElementById('divSuratKeluar').classList.add('hidden');
+      } else {
+        document.getElementById('divSuratMasuk').classList.add('hidden');
+        document.getElementById('divSuratKeluar').classList.remove('hidden');
+      }
+    }
+
+    function setTabCategory(cat) {
+      activeTabArsip = cat;
+      const btnSemua = document.getElementById('btnSemua');
+      const btnMasuk = document.getElementById('btnMasuk');
+      const btnKeluar = document.getElementById('btnKeluar');
+      const tableTitle = document.getElementById('tableTitle');
+
+      btnSemua.className = "flex-1 md:flex-none bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition";
+      btnMasuk.className = "flex-1 md:flex-none bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition";
+      btnKeluar.className = "flex-1 md:flex-none bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition";
+
+      if(cat === 'semua') {
+        btnSemua.className = "flex-1 md:flex-none bg-blue-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition";
+        tableTitle.innerText = "Semua Arsip Surat";
+      } else if(cat === 'masuk') {
+        btnMasuk.className = "flex-1 md:flex-none bg-blue-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition";
+        tableTitle.innerText = "Daftar Arsip Surat Masuk";
+      } else {
+        btnKeluar.className = "flex-1 md:flex-none bg-blue-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition";
+        tableTitle.innerText = "Daftar Arsip Surat Keluar";
+      }
+
+      document.getElementById('thAksi').style.display = currentUserRole === 'admin' ? 'table-cell' : 'none';
+      renderTableData();
+    }
+
+    function extractNumberFromArsip(str) {
+      if(!str) return 0;
+      const match = str.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+
+    function renderTableData() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = "";
+      
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      const sortOrder = document.getElementById('sortOrder').value;
+
+      let combinedData = [];
+
+      if(activeTabArsip === 'semua' || activeTabArsip === 'masuk') {
+        localDatabase.masuk.forEach((item, index) => {
+          combinedData.push({ ...item, category: 'masuk', originalIndex: index });
+        });
+      }
+
+      if(activeTabArsip === 'semua' || activeTabArsip === 'keluar') {
+        localDatabase.keluar.forEach((item, index) => {
+          combinedData.push({ ...item, category: 'keluar', originalIndex: index });
+        });
+      }
+
+      // 1. Filtering Logic
+      if(searchQuery !== "") {
+        combinedData = combinedData.filter(item => {
+          const mainParty = (item.category === 'masuk' ? item.pengirim : item.pemohon) || '';
+          const desc = (item.category === 'masuk' ? item.disposisi : item.keterangan) || '';
+          return item.noArsip.toLowerCase().includes(searchQuery) ||
+                 item.noSurat.toLowerCase().includes(searchQuery) ||
+                 mainParty.toLowerCase().includes(searchQuery) ||
+                 desc.toLowerCase().includes(searchQuery);
+        });
+      }
+
+      // 2. Numerical Sorting Logic
+      combinedData.sort((a, b) => {
+        const numA = extractNumberFromArsip(a.noArsip);
+        const numB = extractNumberFromArsip(b.noArsip);
+        return sortOrder === 'asc' ? numA - numB : numB - numA;
+      });
+
+      if(combinedData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Tidak ada data surat yang ditemukan.</td></tr>`;
+        return;
+      }
+
+      combinedData.forEach((item) => {
+        let tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition";
+        const isMasuk = item.category === 'masuk';
+        const badgeColor = isMasuk ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+
+        tr.innerHTML = `
+          <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${badgeColor}">${isMasuk ? 'Masuk' : 'Keluar'}</span></td>
+          <td class="p-3 font-semibold text-blue-900">${item.noArsip}</td>
+          <td class="p-3">${item.noSurat}</td>
+          <td class="p-3">${isMasuk ? item.pengirim : item.pemohon}</td>
+          <td class="p-3">${item.tglSurat}</td>
+          <td class="p-3">${isMasuk ? item.disposisi : item.keterangan}</td>
+          <td class="p-3">
+            ${item.fileUrl && item.fileUrl !== '#' ? `<a href="${item.fileUrl}" target="_blank" class="text-blue-600 hover:underline text-xs flex items-center space-x-1"><i class="fas fa-external-link-alt"></i><span>Buka Drive</span></a>` : (item.fileName ? `<span class="text-xs text-gray-600"><i class="fas fa-file mr-1"></i>${item.fileName}</span>` : '<span class="text-gray-400 text-xs">Tanpa Berkas</span>')}
+          </td>
+          <td class="p-3 text-center space-x-1" style="display: ${currentUserRole === 'admin' ? 'table-cell' : 'none'};">
+            <button onclick="editSurat('${item.category}', ${item.originalIndex})" class="bg-amber-100 text-amber-700 hover:bg-amber-200 p-2 rounded-lg transition" title="Sunting Surat">
+              <i class="fas fa-pencil-alt"></i>
+            </button>
+            <button onclick="hapusSurat('${item.category}', ${item.originalIndex})" class="bg-red-100 text-red-700 hover:bg-red-200 p-2 rounded-lg transition" title="Hapus Surat">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function submitSurat(event) {
+      event.preventDefault();
+      const jenis = document.getElementById('jenisSurat').value;
+      const editIdx = document.getElementById('editIndex').value;
+      const editCat = document.getElementById('editCategory').value;
+      const fileInput = document.getElementById('fileInput');
+
+      const btnSubmit = document.getElementById('btnSubmitForm');
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Mengunggah ke Google Drive & Sheets...`;
+
+      let fileData = null;
+      let fileName = "";
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fileName = file.name;
+        fileData = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      let formData = {
+        jenisSurat: jenis,
+        noSurat: document.getElementById('noSurat').value,
+        noArsip: document.getElementById('noArsip').value,
+        tglSurat: document.getElementById('tglSurat').value,
+        pengirim: document.getElementById('pengirim').value,
+        tglDiterima: document.getElementById('tglDiterima').value,
+        disposisi: document.getElementById('disposisi').value,
+        pemohon: document.getElementById('pemohon').value,
+        keterangan: document.getElementById('keterangan').value,
+        fileName: fileName,
+        fileData: fileData,
+        fileUrl: "-"
+      };
+
+      if(editIdx !== "") {
+        localDatabase[editCat].splice(editIdx, 1);
+        localDatabase[jenis].push(formData);
+      } else {
+        localDatabase[jenis].push(formData);
+      }
+
+      if (SCRIPT_URL) {
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(formData)
+          });
+          const responseJson = await res.json();
+          if(responseJson.fileUrl) {
+            formData.fileUrl = responseJson.fileUrl;
+          }
+        } catch(err) {
+          console.error("Sinkronisasi Google Apps Script:", err);
+        }
+      }
+
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<span>Simpan ke Arsip & Drive</span>`;
+
+      switchMenu('arsip');
+      setTabCategory(jenis);
+    }
+
+    async function hapusSurat(category, index) {
+      if(currentUserRole !== 'admin') return;
+      
+      const pwdInput = prompt("PERHATIAN: Anda akan menghapus arsip surat ini secara permanen.\n\nMasukkan Password Admin untuk konfirmasi:");
+      if(pwdInput === ADMIN_PASSWORD) {
+        const removedItem = localDatabase[category].splice(index, 1)[0];
+        
+        if (SCRIPT_URL) {
+          try {
+            await fetch(SCRIPT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ 
+                action: 'delete', 
+                jenisSurat: category, 
+                noArsip: removedItem.noArsip 
+              })
+            });
+          } catch(err) {
+            console.error("Gagal sinkronisasi hapus ke Google Sheets:", err);
+          }
+        }
+
+        renderTableData();
+      } else if(pwdInput !== null) {
+        alert("Password konfirmasi salah! Penghapusan dibatalkan.");
+      }
+    }
+
+    function editSurat(category, index) {
+      if(currentUserRole !== 'admin') return;
+      
+      switchMenu('input');
+      const item = localDatabase[category][index];
+
+      document.getElementById('editIndex').value = index;
+      document.getElementById('editCategory').value = category;
+      document.getElementById('jenisSurat').value = category;
+      toggleFormFields();
+
+      document.getElementById('noSurat').value = item.noSurat;
+      document.getElementById('noArsip').value = item.noArsip;
+      document.getElementById('tglSurat').value = item.tglSurat;
+      
+      if(category === 'masuk') {
+        document.getElementById('pengirim').value = item.pengirim || '';
+        document.getElementById('tglDiterima').value = item.tglDiterima || '';
+        document.getElementById('disposisi').value = item.disposisi || '';
+      } else {
+        document.getElementById('pemohon').value = item.pemohon || '';
+        document.getElementById('keterangan').value = item.keterangan || '';
+      }
+
+      document.getElementById('formTitleText').innerText = "Sunting Data Surat #" + item.noArsip;
+      document.getElementById('btnSubmitForm').innerText = "Simpan Perubahan";
+    }
+  </script>
+</body>
+</html>
